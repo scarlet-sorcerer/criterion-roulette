@@ -13,6 +13,7 @@ from pyfiglet import figlet_format
 
 
 LOGFILE_NAME = 'db.json'
+DEBUG_LOGFILE_NAME = 'debug.db.json'
 
 PARTY_SIZE = 4
 DEFAULT_ROLE_LIST = ['Tank', 'Healer', 'Melee', 'Ranged']
@@ -51,7 +52,7 @@ class Session:
     """
 
 
-    def __init__(self, session_members=None, dungeon_list=DEFAULT_DUNGEON_DICT):
+    def __init__(self, session_members=None, dungeon_list=DEFAULT_DUNGEON_DICT, debug=False):
         self.active = True
         self.dungeon_list = dungeon_list
         self.logfile_name = LOGFILE_NAME
@@ -66,6 +67,9 @@ class Session:
         except (TypeError, ValueError) as e:
             print('Error setting member list')
             raise e
+
+        if (debug == True):
+            self.logfile_name = DEBUG_LOGFILE_NAME
 
 
     def set_member_list(self, member_list=None):
@@ -197,7 +201,7 @@ class Session:
         # Day ##() - 6, ASS, ASS, ASS, ASS, AAI, ASS ---- 5/0/1
         # ^     #1    ^ ^           #2               ^^   #3   ^
         rendered_string = f'Day ##   - {sum(dungeon_counts.values())}, '
-        s = ', '.join([run.get_dungeon() for run in run_list])
+        s = ', '.join([run.get_dungeon() if run.get_num_secrets() == 0 else run.get_dungeon()+'*' for run in run_list])
         rendered_string += s + ' '
         rendered_string = f'{rendered_string:-<47} {"/".join([str(dungeon_counts[entry]) for entry in self.dungeon_list])}'
 
@@ -297,7 +301,7 @@ class Session:
 
 
     def roll_for_secret(self):
-        if random.random() < .5:
+        if random.random() < .05:
             return random.choice(SECRET_ROLES)
         
         return None
@@ -404,6 +408,8 @@ class DungeonRun:
     def get_id(self):
         return self.id
 
+    def get_num_secrets(self):
+        return self.secrets_triggered
 
 def register_members(debug=False):
     '''Return a validated list of members from user input.'''
@@ -459,9 +465,13 @@ def wait_for_user_input(options={}):
     return input(PROMPT)
 
 
-def create_session(member_list=None):
+def create_session(member_list=None, debug=False):
     while member_list is None:
         try:
+            if (debug == True):
+                member_list = SAMPLE_PARTY_LIST
+                session = Session(member_list, debug=True)
+                return session
             member_list = register_members(debug=False)
         except ValueError as e:
             print(e)
@@ -490,6 +500,9 @@ def run():
         elif user_selection == '3':
             print('Thanks for playing!')
             return 0
+        elif user_selection == '0':
+                session = create_session(debug=True)
+                session.start()
     return 1
 
 if __name__ == "__main__":
