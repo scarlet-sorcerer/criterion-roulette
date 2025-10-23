@@ -5,6 +5,7 @@ import sys
 import json
 import random
 import datetime
+import pathlib
 
 from time import sleep
 from math import ceil
@@ -325,7 +326,7 @@ class Session:
             return None        
         log_entry = self.render_log_from_run(run)
 
-        with open(logfile, 'a') as f:
+        with open(pathlib.Path(__file__).parent / logfile, 'a') as f:
             f.write(log_entry + '\n')
 
         return log_entry
