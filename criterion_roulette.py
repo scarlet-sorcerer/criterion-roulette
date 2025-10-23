@@ -51,6 +51,11 @@ class Session:
     4) End session
     """
 
+    _reroll_menu = """
+    1) Confirm run
+    2) Re-roll run
+    """
+
 
     def __init__(self, session_members=None, dungeon_list=DEFAULT_DUNGEON_DICT, debug=False):
         self.active = True
@@ -106,6 +111,12 @@ class Session:
         print('Current Members:')
         print(self.format_current_members())
         print(self._session_menu)
+
+
+    def display_reroll_menu(self):
+        clear_screen()
+        print(self.get_current_run())
+        print(self._reroll_menu)
 
 
     def display_session_summary(self):
@@ -220,6 +231,8 @@ class Session:
         for key, value in run.__dict__.items():
             if key == 'id':
                 key = 'run_id'
+            if key == 'dungeon_list':
+                continue
             run_attr[key] = value
         #run_attr = run.__dict__
 
@@ -318,6 +331,24 @@ class Session:
         return log_entry
 
 
+    def check_for_reroll(self, current_run=None):
+        if current_run is None:
+            current_run = self.session_runs[-1]
+
+        run_confirmed = False
+        while run_confirmed == False:
+            self.display_reroll_menu()
+
+            user_selection = wait_for_user_input()
+            
+            if user_selection == '1':
+                run_confirmed = True
+            elif user_selection == '2':
+                current_run.reroll()
+
+        return None
+
+
     def start(self):
         response = None
 
@@ -336,6 +367,7 @@ class Session:
                 break
             elif user_selection == '1': # Start a new run
                 r = self.start_new_run()
+                self.check_for_reroll(r)
                 self.log_run(logfile = self.logfile_name, run=r)
                 response = self.get_current_run()
             elif user_selection == '2': # View previous run
@@ -358,9 +390,12 @@ class DungeonRun:
         self.party = None
         self.id = run_id
         self.secrets_triggered = 0
+        self.members = member_list
+        self.dungeon_list = dungeon_list
+        self.reroll_status = False
         try:
             self.dungeon = self.select_dungeon(dungeon_list)
-            self.party = self.select_party(member_list)
+            self.party = self.select_party(self.members)
         except Exception as e:
             print(e)
 
@@ -386,6 +421,7 @@ class DungeonRun:
             raise Exception('No dungeons provided!')
         return random.choice(list(dungeon_list.keys()))
 
+
     def activate_secret(self, replacement_role=None):
         if replacement_role is None:
             return None
@@ -394,6 +430,20 @@ class DungeonRun:
             if role not in REQUIRED_ROLES and role != replacement_role:
                 self.party[member] = replacement_role
                 break
+        return None
+
+
+    def reroll(self):
+        self.reroll_status = True
+
+        original_dungeon = self.dungeon
+        new_dungeon_list = self.dungeon_list.copy()
+        new_dungeon_list.pop(original_dungeon)
+        self.dungeon = self.select_dungeon(new_dungeon_list)
+
+        original_party = self.party.copy()
+        self.party = self.select_party(self.members)
+
         return None
 
 
@@ -408,8 +458,14 @@ class DungeonRun:
     def get_id(self):
         return self.id
 
+
     def get_num_secrets(self):
         return self.secrets_triggered
+
+
+    def get_reroll_status(self):
+        return self.reroll_status
+
 
 def register_members(debug=False):
     '''Return a validated list of members from user input.'''
