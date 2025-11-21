@@ -215,7 +215,7 @@ class Session:
         rendered_string = f'Day ##   - {sum(dungeon_counts.values())}, '
         s = ', '.join([run.get_dungeon() if run.get_num_secrets() == 0 else run.get_dungeon()+'*' for run in run_list])
         rendered_string += s + ' '
-        rendered_string = f'{rendered_string:-<47} {"/".join([str(dungeon_counts[entry]) for entry in self.dungeon_list])}'
+        rendered_string = f'{rendered_string:-<46} {"/".join([str(dungeon_counts[entry]) for entry in self.dungeon_list])}'
 
         return rendered_string
 
