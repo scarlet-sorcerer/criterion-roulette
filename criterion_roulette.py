@@ -228,11 +228,12 @@ class Session:
         run_attr = {} 
         run_attr['timestamp'] = str(datetime.datetime.now(tz=datetime.UTC))
         run_attr['session_id'] = self.session_id
-        run_attr['members'] = self.member_list
+        run_attr['members'] = sort(self.member_list)
         for key, value in run.__dict__.items():
             if key == 'id':
                 key = 'run_id'
             if key == 'dungeon_list':
+                # skip this key:value pair if it's the list of dungeons to pull from
                 continue
             run_attr[key] = value
         #run_attr = run.__dict__
@@ -377,7 +378,7 @@ class Session:
                 self.display_run_info(self.session_runs)
             elif user_selection == '2357':
                 self.secret_enabled = not self.secret_enabled
-                response = f'Secret {"enabled" if self.secret_enabled else "disabled"}!  {self.secret_enabled}'
+                response = f'Secret {"enabled" if self.secret_enabled else "disabled"}!'
             else:
                 if response is not None and len(self.session_runs) > 0:
                     response = self.get_current_run()
