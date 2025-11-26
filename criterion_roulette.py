@@ -23,7 +23,8 @@ SAMPLE_PARTY_LIST = ['Shin', 'Figgy', 'Nari', 'Jing']
 SAMPLE_UNDERSIZED_PARTY_LIST = ['Shin', 'Figgy', 'Nari']
 DEFAULT_DUNGEON_DICT = {"ASS": "Another Sil'dihn Subterrane",
                         "AMR": "Another Mount Rokkon",
-                        "AAI": "Another Aloalo Island"}
+                        "AAI": "Another Aloalo Island",
+                        "V15": "The Final Verse (Quantum 15)"}
 SECRET_ROLES = ['Tank', 'Healer', 'Melee']
 REQUIRED_ROLES = ['Tank', 'Healer']
 
@@ -31,6 +32,7 @@ PROMPT = '> '
 TABLE_MARGINS = 4
 INDENT_INTERVAL = 4
 MAX_DUNGEON_NAME_LENGTH = max([len(DEFAULT_DUNGEON_DICT[dungeon]) for dungeon in DEFAULT_DUNGEON_DICT])
+MAX_DUNGEON_TABLE_WIDTH = 32
 
 TBD_STRING = 'Coming soon!'
 CONTINUE_STRING = '\nPress Enter to continue...\n'
@@ -131,8 +133,8 @@ class Session:
         dungeon_counts = self.parse_dungeon_counts()
         print('\nSession Totals:\n')
         for dungeon in self.dungeon_list.keys():
-            print(f'{"":{INDENT_INTERVAL*4}}{self.dungeon_list[dungeon]+":":32s}{dungeon_counts[dungeon]!s}')
-        print(f'\n{"":{INDENT_INTERVAL*4}}{"Overall:":32s}{sum(dungeon_counts.values())!s}')
+            print(f'{"":{INDENT_INTERVAL*4}}{self.dungeon_list[dungeon]+":":{MAX_DUNGEON_TABLE_WIDTH}s}{dungeon_counts[dungeon]!s}')
+        print(f'\n{"":{INDENT_INTERVAL*4}}{"Overall:":{MAX_DUNGEON_TABLE_WIDTH}s}{sum(dungeon_counts.values())!s}')
         print('\n')
 
         # Table for # of times each member was assigned each role
@@ -230,7 +232,7 @@ class Session:
         run_attr = {} 
         run_attr['timestamp'] = str(datetime.datetime.now(tz=datetime.UTC))
         run_attr['session_id'] = self.session_id
-        run_attr['members'] = sort(self.member_list)
+        run_attr['members'] = sorted(self.member_list)
         for key, value in run.__dict__.items():
             if key == 'id':
                 key = 'run_id'
